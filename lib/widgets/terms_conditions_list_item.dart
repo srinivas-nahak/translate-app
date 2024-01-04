@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:translate_app/utils/constants.dart';
+import 'package:translate_app/widgets/show_hindi_btn.dart';
 
 class TermsConditionsListItem extends StatefulWidget {
   const TermsConditionsListItem({super.key, required this.termsCondition});
@@ -16,12 +18,12 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
   @override
   void initState() {
     super.initState();
-    receivedTermsCondition = widget.termsCondition;
+    _receivedTermsCondition = widget.termsCondition;
   }
 
-  String receivedTermsCondition = "";
-  String hindiTermsCondition = "";
-  bool showHindiText = false;
+  String _receivedTermsCondition = "";
+  String _hindiTermsCondition = "";
+  bool _showHindiText = false;
 
   final onDeviceTranslator = OnDeviceTranslator(
       sourceLanguage: TranslateLanguage.english,
@@ -32,7 +34,8 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25),
         child: Text(
-          hindiTermsCondition,
+          _hindiTermsCondition,
+          style: kBodyTextStyle,
           textAlign: TextAlign.center,
         ),
       ),
@@ -47,7 +50,6 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
     return SizedBox(
       width: double.infinity,
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 8.0),
@@ -57,40 +59,36 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: Text(
-                    receivedTermsCondition,
-                    style: const TextStyle(fontSize: 16),
+                    _receivedTermsCondition,
+                    style: kBodyTextStyle,
                     textAlign: TextAlign.center,
                   ),
                 ),
                 const SizedBox(
                   height: 10,
                 ),
-                if (showHindiText) ...getHindiText(),
+                if (_showHindiText) ...getHindiText(),
                 Align(
-                  alignment: Alignment.centerRight,
-                  child: ElevatedButton(
-                      style: const ButtonStyle(
-                        visualDensity: VisualDensity.compact,
-                      ),
+                    alignment: Alignment.centerRight,
+                    child: ShowHindiBtn(
                       onPressed: () => {
-                            if (showHindiText)
-                              {
-                                setState(() {
-                                  showHindiText = !showHindiText;
-                                })
-                              }
-                            else
-                              {
-                                onDeviceTranslator
-                                    .translateText(receivedTermsCondition)
-                                    .then((value) => setState(() {
-                                          hindiTermsCondition = value;
-                                          showHindiText = true;
-                                        }))
-                              }
-                          },
-                      child: const Text("Read In Hindi")),
-                )
+                        if (_showHindiText)
+                          {
+                            setState(() {
+                              _showHindiText = !_showHindiText;
+                            })
+                          }
+                        else
+                          {
+                            onDeviceTranslator
+                                .translateText(_receivedTermsCondition)
+                                .then((value) => setState(() {
+                                      _hindiTermsCondition = value;
+                                      _showHindiText = true;
+                                    }))
+                          }
+                      },
+                    ))
               ],
             ),
           ),

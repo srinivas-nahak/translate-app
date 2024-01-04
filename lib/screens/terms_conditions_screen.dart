@@ -1,12 +1,30 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 import 'package:translate_app/models/data/initial_terms_conditions.dart';
+import 'package:translate_app/widgets/add_terms_conditions.dart';
 import 'package:translate_app/widgets/terms_conditions_list_item.dart';
 
-class TermsConditionsScreen extends StatelessWidget {
-  TermsConditionsScreen({super.key});
+class TermsConditionsScreen extends StatefulWidget {
+  const TermsConditionsScreen({super.key});
 
+  @override
+  State<TermsConditionsScreen> createState() => _TermsConditionsScreenState();
+}
+
+class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
   final modelManager = OnDeviceTranslatorModelManager();
+
+  final tempTermsConditions = [...initialTermsConditions];
+
+  @override
+  void initState() {
+    //Downloading the model if it's not already available
+    downloadModel();
+
+    super.initState();
+  }
 
   Future<void> downloadModel() async {
     final bool isHindiModelAvailable =
@@ -24,16 +42,32 @@ class TermsConditionsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //Downloading the model if it's not already available
-    downloadModel();
-
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Translation App"),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          showModalBottomSheet(
+              context: context,
+              builder: (context) => const AddTermsConditions()).then((value) {
+            if (value.toString().isNotEmpty) {
+              final random = Random();
+              int randomNumber = random.nextInt(16);
+
+              //Adding Task to the list
+              setState(() {
+                tempTermsConditions.insert(0, {
+                  "id": randomNumber,
+                  "value": value,
+                  "createdAt": DateTime.now().toString(),
+                  "updatedAt": DateTime.now().toString(),
+                });
+              });
+            }
+          });
+        },
         tooltip: "Add More",
         child: const Icon(Icons.add),
       ),
@@ -41,10 +75,10 @@ class TermsConditionsScreen extends StatelessWidget {
         children: [
           Expanded(
             child: ListView.builder(
-              itemCount: initialTermsConditions.length,
+              padding: const EdgeInsets.all(10),
+              itemCount: tempTermsConditions.length,
               itemBuilder: (context, index) => TermsConditionsListItem(
-                termsCondition:
-                    initialTermsConditions[index]["value"].toString(),
+                termsCondition: tempTermsConditions[index]["value"].toString(),
               ),
             ),
           ),
