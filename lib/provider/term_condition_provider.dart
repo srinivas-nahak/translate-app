@@ -13,11 +13,13 @@ class TermsConditionsNotifier extends StateNotifier<List<Map<String, Object>>> {
 
     List<Map<String, Object>> tempList = [...state];
 
-    for (final item in tempList) {
-      if (item["id"] == tempId) {
-        item["value"] = editedValue;
-        print(item["id"]);
-        break;
+    //Changing the value at the particular index
+    for (var i = 0; i < tempList.length; i++) {
+      if (tempList[i]["id"] == tempId) {
+        tempList[i] = {
+          ...tempList[i],
+          "value": editedValue,
+        };
       }
     }
 
