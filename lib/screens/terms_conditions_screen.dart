@@ -1,30 +1,61 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
-import 'package:translate_app/models/data/initial_terms_conditions.dart';
 import 'package:translate_app/widgets/add_terms_conditions.dart';
 import 'package:translate_app/widgets/terms_conditions_list_item.dart';
 
-class TermsConditionsScreen extends StatefulWidget {
-  const TermsConditionsScreen({super.key});
+import '../provider/term_condition_provider.dart';
+
+class TermsConditionsScreen extends ConsumerWidget {
+  TermsConditionsScreen({super.key});
 
   @override
-  State<TermsConditionsScreen> createState() => _TermsConditionsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    //Watching the change in the list
+    final termsConditionsList = ref.watch(termsConditionsProvider);
 
-class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
-  final modelManager = OnDeviceTranslatorModelManager();
-
-  final tempTermsConditions = [...initialTermsConditions];
-
-  @override
-  void initState() {
-    //Downloading the model if it's not already available
-    downloadModel();
-
-    super.initState();
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text("Translation App"),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showModalBottomSheet(
+              context: context,
+              builder: (context) => const AddTermsConditions());
+        },
+        tooltip: "Add More",
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder<void>(
+              future: downloadModel(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(10),
+                    itemCount: termsConditionsList.length,
+                    itemBuilder: (context, index) => TermsConditionsListItem(
+                      termsConditionItem: termsConditionsList[index],
+                    ),
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
+  final modelManager = OnDeviceTranslatorModelManager();
 
   Future<void> downloadModel() async {
     final bool isHindiModelAvailable =
@@ -38,53 +69,5 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
 
     await modelManager.downloadModel(TranslateLanguage.hindi.bcpCode);
     modelManager.downloadModel(TranslateLanguage.english.bcpCode);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text("Translation App"),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              builder: (context) => const AddTermsConditions()).then((value) {
-            if (value.toString().isNotEmpty) {
-              final random = Random();
-              int randomNumber = random.nextInt(16);
-
-              //Adding Task to the list
-              setState(() {
-                tempTermsConditions.insert(0, {
-                  "id": randomNumber,
-                  "value": value,
-                  "createdAt": DateTime.now().toString(),
-                  "updatedAt": DateTime.now().toString(),
-                });
-              });
-            }
-          });
-        },
-        tooltip: "Add More",
-        child: const Icon(Icons.add),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(10),
-              itemCount: tempTermsConditions.length,
-              itemBuilder: (context, index) => TermsConditionsListItem(
-                termsCondition: tempTermsConditions[index]["value"].toString(),
-              ),
-            ),
-          ),
-          //ElevatedButton(onPressed: () {}, child: Text("Add More"))
-        ],
-      ),
-    );
   }
 }

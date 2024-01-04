@@ -59,5 +59,3 @@ const initialTermsConditions = [
     "updatedAt": "2023-09-04 12:11:42"
   }
 ];
-
-class InitialTermsConditions {}

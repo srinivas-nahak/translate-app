@@ -1,16 +1,22 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:translate_app/provider/term_condition_provider.dart';
 import 'package:translate_app/utils/constants.dart';
 import 'package:translate_app/widgets/show_hindi_btn.dart';
 
-class AddTermsConditions extends StatefulWidget {
-  const AddTermsConditions({super.key});
+class AddTermsConditions extends ConsumerStatefulWidget {
+  const AddTermsConditions({super.key, this.termConditionItem});
+
+  final Map<String, Object>? termConditionItem;
 
   @override
-  State<AddTermsConditions> createState() => _AddTermsConditionsState();
+  ConsumerState<AddTermsConditions> createState() => _AddTermsConditionsState();
 }
 
-class _AddTermsConditionsState extends State<AddTermsConditions> {
+class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
   final TextEditingController _textEditingController = TextEditingController();
   OutlineInputBorder? _errorBorder;
 
@@ -21,6 +27,18 @@ class _AddTermsConditionsState extends State<AddTermsConditions> {
   final onDeviceTranslator = OnDeviceTranslator(
       sourceLanguage: TranslateLanguage.english,
       targetLanguage: TranslateLanguage.hindi);
+
+  @override
+  void initState() {
+    if (widget.termConditionItem != null) {
+      _textEditingController.text =
+          widget.termConditionItem?["value"].toString() ?? "";
+      _enteredTermCondition =
+          widget.termConditionItem?["value"].toString() ?? "";
+    }
+
+    super.initState();
+  }
 
   void _onTermsConditionsSubmit(String task) {
     if (_textEditingController.text.trim().length <= 3) {
@@ -33,7 +51,30 @@ class _AddTermsConditionsState extends State<AddTermsConditions> {
       return;
     }
 
-    Navigator.of(context).pop(_textEditingController.text);
+    //Adding terms and conditions
+
+    if (widget.termConditionItem != null) {
+      final String tempId = widget.termConditionItem?["id"].toString() ?? "";
+
+      ref.read(termsConditionsProvider.notifier).editTermCondition(
+            tempId,
+            _textEditingController.text,
+          );
+    } else {
+      final random = Random();
+      int randomNumber = random.nextInt(16);
+
+      //Adding Task to the list
+
+      ref.read(termsConditionsProvider.notifier).addTermCondition({
+        "id": randomNumber,
+        "value": _textEditingController.text,
+        "createdAt": DateTime.now().toString(),
+        "updatedAt": DateTime.now().toString(),
+      });
+    }
+
+    Navigator.of(context).pop();
   }
 
   List<Widget> getHindiText() {
@@ -44,8 +85,9 @@ class _AddTermsConditionsState extends State<AddTermsConditions> {
           padding: const EdgeInsets.symmetric(horizontal: 15),
           child: Text(
             _hindiTermCondition,
-            style: kBodyTextStyle,
-            textAlign: TextAlign.center,
+            style:
+                kBodyTextStyle.copyWith(color: Colors.black.withOpacity(0.4)),
+            textAlign: TextAlign.start,
           ),
         ),
       ),
