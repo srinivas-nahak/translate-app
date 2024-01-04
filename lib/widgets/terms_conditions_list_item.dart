@@ -16,14 +16,31 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
   @override
   void initState() {
     super.initState();
-    termsCondition = widget.termsCondition;
+    receivedTermsCondition = widget.termsCondition;
   }
 
-  String termsCondition = "";
+  String receivedTermsCondition = "";
+  String hindiTermsCondition = "";
+  bool showHindiText = false;
 
   final onDeviceTranslator = OnDeviceTranslator(
       sourceLanguage: TranslateLanguage.english,
       targetLanguage: TranslateLanguage.hindi);
+
+  List<Widget> getHindiText() {
+    return [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: Text(
+          hindiTermsCondition,
+          textAlign: TextAlign.center,
+        ),
+      ),
+      const SizedBox(
+        height: 10,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +57,7 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: Text(
-                    widget.termsCondition,
+                    receivedTermsCondition,
                     style: const TextStyle(fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
@@ -48,13 +65,30 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
                 const SizedBox(
                   height: 10,
                 ),
+                if (showHindiText) ...getHindiText(),
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
                       style: const ButtonStyle(
                         visualDensity: VisualDensity.compact,
                       ),
-                      onPressed: () => {},
+                      onPressed: () => {
+                            if (showHindiText)
+                              {
+                                setState(() {
+                                  showHindiText = !showHindiText;
+                                })
+                              }
+                            else
+                              {
+                                onDeviceTranslator
+                                    .translateText(receivedTermsCondition)
+                                    .then((value) => setState(() {
+                                          hindiTermsCondition = value;
+                                          showHindiText = true;
+                                        }))
+                              }
+                          },
                       child: const Text("Read In Hindi")),
                 )
               ],
@@ -67,7 +101,9 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
+
+    //Releasing the translation resources
+    onDeviceTranslator.close();
   }
 }

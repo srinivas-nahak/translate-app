@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:translate_app/screens/terms_conditions_screen.dart';
 
-var kColorScheme = ColorScheme.fromSeed(seedColor: Colors.deepPurpleAccent);
+var kColorScheme = ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent);
 var kDarkColorScheme = ColorScheme.fromSeed(seedColor: const Color(0xff202020));
 
 void main() {

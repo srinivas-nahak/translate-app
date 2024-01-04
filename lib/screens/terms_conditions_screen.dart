@@ -31,13 +31,25 @@ class TermsConditionsScreen extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: const Text("Translation App"),
-        backgroundColor: Colors.grey,
       ),
-      body: ListView.builder(
-        itemCount: initialTermsConditions.length,
-        itemBuilder: (context, index) => TermsConditionsListItem(
-          termsCondition: initialTermsConditions[index]["value"].toString(),
-        ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        tooltip: "Add More",
+        child: const Icon(Icons.add),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: initialTermsConditions.length,
+              itemBuilder: (context, index) => TermsConditionsListItem(
+                termsCondition:
+                    initialTermsConditions[index]["value"].toString(),
+              ),
+            ),
+          ),
+          //ElevatedButton(onPressed: () {}, child: Text("Add More"))
+        ],
       ),
     );
   }
