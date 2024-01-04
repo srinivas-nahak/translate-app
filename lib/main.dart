@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:translate_app/screens/terms_conditions_screen.dart';
+import 'package:translate_app/utils/constants.dart';
 
 var kColorScheme = ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent);
 var kDarkColorScheme = ColorScheme.fromSeed(seedColor: const Color(0xff202020));
@@ -32,6 +33,7 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
+            textStyle: const TextStyle(),
             foregroundColor: Colors.black.withOpacity(0.5),
             backgroundColor: Colors.lightBlueAccent.withOpacity(0.2),
             elevation: 0,

@@ -292,9 +292,11 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
               ),
               child: const Text('Submit'),
               onPressed: () {
-                _textEditingController.text = _lastWords;
-                _enteredTermCondition = _lastWords;
-                Navigator.of(context).pop();
+                if (_speechToText.isNotListening) {
+                  _textEditingController.text = _lastWords;
+                  _enteredTermCondition = _lastWords;
+                  Navigator.of(context).pop();
+                }
               },
             ),
             TextButton(

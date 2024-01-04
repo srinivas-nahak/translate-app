@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:translate_app/utils/constants.dart';
 import 'package:translate_app/widgets/add_terms_conditions.dart';
 import 'package:translate_app/widgets/terms_conditions_list_item.dart';
 
@@ -19,7 +20,11 @@ class TermsConditionsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Translation App"),
+        title: Text(
+          "Terms & Conditions",
+          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+        ),
+        backgroundColor: Colors.transparent,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -38,7 +43,7 @@ class TermsConditionsScreen extends ConsumerWidget {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return ListView.builder(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10).copyWith(top: 0),
                     itemCount: termsConditionsList.length,
                     itemBuilder: (context, index) => TermsConditionsListItem(
                       termsConditionItem: termsConditionsList[index],

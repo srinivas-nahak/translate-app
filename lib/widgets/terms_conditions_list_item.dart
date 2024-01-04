@@ -42,7 +42,7 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
         ),
       ),
       const SizedBox(
-        height: 10,
+        height: 15,
       ),
     ];
   }
@@ -87,7 +87,7 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
           },
           child: Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
+              padding: const EdgeInsets.all(30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -97,7 +97,7 @@ class _TermsConditionsListItemState extends State<TermsConditionsListItem> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(
-                    height: 10,
+                    height: 15,
                   ),
                   if (_showProgress)
                     const Center(
