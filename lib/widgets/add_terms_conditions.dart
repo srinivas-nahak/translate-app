@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:speech_to_text/speech_recognition_result.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 import 'package:translate_app/provider/term_condition_provider.dart';
 import 'package:translate_app/utils/constants.dart';
 import 'package:translate_app/widgets/show_hindi_btn.dart';
@@ -23,21 +25,65 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
   bool _showHindiText = false;
   String _enteredTermCondition = "";
   String _hindiTermCondition = "";
+  late StateSetter _setState;
 
   final onDeviceTranslator = OnDeviceTranslator(
       sourceLanguage: TranslateLanguage.english,
       targetLanguage: TranslateLanguage.hindi);
 
+  final SpeechToText _speechToText = SpeechToText();
+  bool _speechEnabled = false;
+  String _lastWords = '';
+
   @override
   void initState() {
+    _editItem();
+    _initSpeech();
+    super.initState();
+  }
+
+  /// This has to happen only once per app
+  void _initSpeech() async {
+    _speechEnabled = await _speechToText.initialize();
+    setState(() {});
+  }
+
+  /// Each time to start a speech recognition session
+  void _startListening() async {
+    //Resetting the last words for next time
+    _lastWords = "";
+
+    //Showing Speech Dialog
+    _showSpeechDialog(context);
+
+    await _speechToText.listen(onResult: _onSpeechResult);
+    setState(() {});
+  }
+
+  void _stopListening() async {
+    await _speechToText.stop();
+
+    setState(() {});
+  }
+
+  void _onSpeechResult(SpeechRecognitionResult result) {
+    setState(() {
+      //Capitalizing the first letter
+      _lastWords = result.recognizedWords.substring(0, 1).toUpperCase() +
+          result.recognizedWords.substring(1);
+
+      //This setState is for the dialog
+      _setState(() {});
+    });
+  }
+
+  void _editItem() {
     if (widget.termConditionItem != null) {
       _textEditingController.text =
           widget.termConditionItem?["value"].toString() ?? "";
       _enteredTermCondition =
           widget.termConditionItem?["value"].toString() ?? "";
     }
-
-    super.initState();
   }
 
   void _onTermsConditionsSubmit(String task) {
@@ -45,7 +91,7 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
       setState(() {
         _errorBorder = OutlineInputBorder(
           borderSide: const BorderSide(width: 1.7, color: Colors.red),
-          borderRadius: BorderRadius.circular(999),
+          borderRadius: BorderRadius.circular(20),
         );
       });
       return;
@@ -77,7 +123,33 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
     Navigator.of(context).pop();
   }
 
-  List<Widget> getHindiText() {
+  void _onChangedHandler(String typedText) {
+    setState(() {
+      _enteredTermCondition = typedText.trim();
+
+      if (_enteredTermCondition.isEmpty) {
+        setState(() {
+          _showHindiText = !_showHindiText;
+        });
+      }
+
+      if (_showHindiText) {
+        onDeviceTranslator
+            .translateText(_enteredTermCondition)
+            .then((value) => setState(() {
+                  _hindiTermCondition = value;
+                  _showHindiText = true;
+                }));
+      }
+    });
+    if (typedText.trim().length > 3) {
+      setState(() {
+        _errorBorder = null;
+      });
+    }
+  }
+
+  List<Widget> _getHindiText() {
     return [
       Align(
         alignment: Alignment.centerLeft,
@@ -106,31 +178,8 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
         children: [
           TextField(
             controller: _textEditingController,
-            onChanged: (typedText) {
-              setState(() {
-                _enteredTermCondition = typedText.trim();
-
-                if (_enteredTermCondition.isEmpty) {
-                  setState(() {
-                    _showHindiText = !_showHindiText;
-                  });
-                }
-
-                if (_showHindiText) {
-                  onDeviceTranslator
-                      .translateText(_enteredTermCondition)
-                      .then((value) => setState(() {
-                            _hindiTermCondition = value;
-                            _showHindiText = true;
-                          }));
-                }
-              });
-              if (typedText.trim().length > 3) {
-                setState(() {
-                  _errorBorder = null;
-                });
-              }
-            },
+            onChanged: _onChangedHandler,
+            maxLines: null,
             onSubmitted: _onTermsConditionsSubmit,
             keyboardType: TextInputType.text,
             textCapitalization: TextCapitalization.sentences,
@@ -145,14 +194,14 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(
                       width: 1.7, color: Theme.of(context).primaryColorDark),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(
                     width: 1.7,
-                    color: Theme.of(context).primaryColorDark,
+                    color: Theme.of(context).disabledColor,
                   ),
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 errorBorder: _errorBorder,
                 errorText: _errorBorder != null
@@ -162,15 +211,19 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
                 suffixIcon: Padding(
                   padding: const EdgeInsets.only(right: 5),
                   child: IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.mic),
+                    onPressed: _speechToText.isNotListening
+                        ? _startListening
+                        : _stopListening,
+                    icon: Icon(_speechToText.isNotListening
+                        ? Icons.mic
+                        : Icons.mic_off),
                   ),
                 )),
           ),
           const SizedBox(
             height: 5,
           ),
-          if (_showHindiText) ...getHindiText(),
+          if (_showHindiText) ..._getHindiText(),
           ShowHindiBtn(
             onPressed: () => {
               if (_textEditingController.text.isNotEmpty)
@@ -210,6 +263,53 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
           )
         ],
       ),
+    );
+  }
+
+  void _showSpeechDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+            _setState = setState;
+
+            return Padding(
+              padding: const EdgeInsets.all(10),
+              child: Text(
+                _lastWords.isEmpty ? "Listening..." : _lastWords,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 25),
+              ),
+            );
+          }), // Display spoken text in content
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Submit'),
+              onPressed: () {
+                _textEditingController.text = _lastWords;
+                _enteredTermCondition = _lastWords;
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Cancel'),
+              onPressed: () {
+                _stopListening();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
