@@ -120,7 +120,8 @@ class _AddTermsConditionsState extends ConsumerState<AddTermsConditions> {
       });
     }
 
-    Navigator.of(context).pop();
+    //Passing true or false value to scroll to top or not
+    Navigator.of(context).pop(widget.termConditionItem == null);
   }
 
   void _onChangedHandler(String typedText) {

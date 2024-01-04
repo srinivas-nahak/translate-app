@@ -25,6 +25,18 @@ class TermsConditionsNotifier extends StateNotifier<List<Map<String, Object>>> {
 
     state = [...tempList];
   }
+
+  void loadMoreData() {
+    // Defining how many additional items to load
+    const int numberOfAdditionalItems = 5;
+
+    // Slicing a portion of the existing dataset to simulate more data
+    final List<Map<String, Object>> additionalData =
+        state.sublist(0, numberOfAdditionalItems);
+
+    // Appending the sliced data to the existing list
+    state = [...state, ...additionalData];
+  }
 }
 
 final termsConditionsProvider =
